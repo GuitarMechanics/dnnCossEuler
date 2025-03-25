@@ -7,7 +7,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import r2_score
 
 # Load the CSV data
-file_path = '/home/guitarmechanics/git_repos/DnnCossEuler/curvature_reginfos.csv'
+file_path = 'curvature_reginfos.csv'
 data = pd.read_csv(file_path)
 
 # Extract x, y, z
@@ -20,7 +20,7 @@ z = data['Kratio'].values
 XY = np.vstack((x, y)).T
 
 # Generate polynomial features (2차 다항식까지)
-poly = PolynomialFeatures(degree=3)
+poly = PolynomialFeatures(degree=2)
 XY_poly = poly.fit_transform(XY)
 
 # Fit regression model without fitting intercept
@@ -30,7 +30,7 @@ model.fit(XY_poly, z)
 # 모델 계수 출력
 coeff_names = poly.get_feature_names_out(['x', 'y'])
 for name, coef in zip(coeff_names, model.coef_):
-    print(f'{name}: {coef:.5f}')
+    print(f'{name}: {coef:.3f}')
 
 # 예측용 그리드 생성
 xfit = np.linspace(x.min(), x.max(), 100)

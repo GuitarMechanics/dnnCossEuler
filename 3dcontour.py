@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 
 # Load CSV data
-file_path = '/home/guitarmechanics/git_repos/DnnCossEuler/curvature_reginfos.csv'
+file_path = 'curvature_reginfos.csv'
 data = pd.read_csv(file_path)
 
 # Extract columns
@@ -27,7 +27,7 @@ zi = griddata((x_data, y_data), z_data, (xi, yi), method='linear')
 XY = np.vstack((x_data, y_data)).T
 
 # Generate polynomial features (2차 다항식까지)
-poly = PolynomialFeatures(degree=3)
+poly = PolynomialFeatures(degree=2)
 XY_poly = poly.fit_transform(XY)
 
 # Fit regression model
