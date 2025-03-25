@@ -5,6 +5,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
+import os
+
+os.system('cls') if os.name == 'nt' else os.system('clear')
+
 
 # Load CSV data
 file_path = 'curvature_reginfos.csv'
@@ -30,16 +34,6 @@ XY = np.vstack((x_data, y_data)).T
 poly = PolynomialFeatures(degree=2)
 XY_poly = poly.fit_transform(XY)
 
-# Fit regression model
-# Fit regression model without fitting intercept
-model = LinearRegression()
-model.fit(XY_poly, z_data)
-
-# 모델 계수 출력
-coeff_names = poly.get_feature_names_out(['x', 'y'])
-for name, coef in zip(coeff_names, model.coef_):
-    print(f'{name}: {coef:.5f}')
-
 # 예측용 그리드 생성
 xfit = np.linspace(x_data.min(), x_data.max(), 100)
 yfit = np.linspace(y_data.min(), y_data.max(), 100)
@@ -47,8 +41,7 @@ xfit, yfit = np.meshgrid(xfit, yfit)
 XYfit = np.vstack((xfit.ravel(), yfit.ravel())).T
 
 # Predict with fixed intercept added back
-Zfit = model.predict(poly.transform(XYfit)).reshape(xfit.shape)
-
+Zfit = 3.56e-3*xfit + 7.93e-2*yfit - 4e-5 * xfit ** 2 + 4.03e-3 * xfit  * yfit - 2.46e-3 * yfit**2 + 0.953
 fig = plt.figure(figsize = (12, 8))
 ax = fig.add_subplot(111, projection='3d')
 
