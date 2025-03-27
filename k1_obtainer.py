@@ -38,6 +38,8 @@ for sheet in sheet_name:
     dfkiy = []
     dfKRx = []
     dfKRy = []
+    dfkixy= []
+    dfKRxy= []
     for _ , row in df.iterrows():
         tdl = row['TDL']
         x = row['exp_hor']
@@ -53,25 +55,40 @@ for sheet in sheet_name:
         def equation_y(ki):
             result, _ = itg.quad(lambda s: np.cos(theta(s, tdl, ki)),0,len)
             return result - y
+        
+        def equation_tot(ki):
+            resx, _ = itg.quad(lambda s: np.sin(theta(s, tdl, ki)),0,len)
+            resy, _ = itg.quad(lambda s: np.cos(theta(s, tdl, ki)),0,len)
 
-        solx = safe_fsolve(equation_x, ka)
+            ret = np.sqrt((resx + x) ** 2 + (resy - y)**2)
+            return ret
+
+        solx = safe_fsolve(equation_x, ka * 1.5)
         kix = solx
         dfkix.append(kix)
         krx = kix / ka
         dfKRx.append(krx)
 
-        soly = safe_fsolve(equation_y, ka)
+        soly = safe_fsolve(equation_y, ka * 1.5)
         kiy = soly
         dfkiy.append(kiy)
         kry = kiy / ka
         dfKRy.append(kry)
+
+        solxy = safe_fsolve(equation_tot, ka * 1.5)
+        kixy = solxy
+        dfkixy.append(kixy)
+        krxy = kixy / ka
+        dfKRxy.append(krxy)
 
     newdf = pd.DataFrame({'TDL':dftdl,
                           'ka': dfka,
                           'kix': dfkix,
                           'KRx': dfKRx,
                           'kiy': dfkiy,
-                          'KRy': dfKRy})
+                          'KRy': dfKRy,
+                          'kixy': dfkixy,
+                          'KRxy': dfKRxy})
     print(newdf)
     pd.DataFrame(newdf).to_excel(writer,index=False,sheet_name=sheet)
 
