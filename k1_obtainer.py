@@ -26,11 +26,11 @@ def safe_fsolve(func, guess):
         except:
             pass
     return np.nan  # return NaN if everything fails
-writer = pd.ExcelWriter('KR_obtained.xlsx',mode='w')
+writer = pd.ExcelWriter('KR_obtained_revnoop_kavg_w_ang.xlsx',mode='w')
 
-sheet_name = ['exp_std', 'exp_30', 'exp_45']
+sheet_name = ['std_ess', 'rev_ess', 'nup_ess']
 for sheet in sheet_name:
-    df = pd.read_excel('single_0205_withmodeuler_essentials.xlsx',
+    df = pd.read_excel('revnoopdong_essentials.xlsx',
                        sheet_name = sheet)
     dftdl = []
     dfka = []
@@ -42,10 +42,12 @@ for sheet in sheet_name:
     dfKRxy= []
     for _ , row in df.iterrows():
         tdl = row['TDL']
-        x = row['exp_hor']
-        y = row['exp_ver']
+        x = row['hor']
+        y = row['ver']
+        ang = row['ang']
         dftdl.append(tdl)
-        ka = tdl / (len * rad)
+        # ka = tdl / (len * rad)
+        ka = ang / len
         dfka.append(ka)
 
         def equation_x(ki):
