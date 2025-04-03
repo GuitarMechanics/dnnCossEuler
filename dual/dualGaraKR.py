@@ -62,5 +62,3 @@ class dualGaraKR():
                                  r'\theta_d':distang})
         
         return tpval, tdval
-testCls = dualGaraKR(3.4,33,61)
-print(testCls.getTDLs(np.deg2rad(30), np.deg2rad(-60)))
