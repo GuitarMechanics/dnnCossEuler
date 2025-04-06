@@ -1,7 +1,7 @@
 import sympy as sp
 import numpy as np
 
-class dualGaraKR():
+class dualGaraKRNew():
     def __init__(self, r, plen, totlen, layout = 'upright'):
         self.r = r
         self.lp = plen
@@ -11,39 +11,32 @@ class dualGaraKR():
         kda = td / (ld * r)
         kd1 = alp * kda
         kd = 2 * (kda - kd1) * s / ld + kd1
+
         kpa = tp / (lp * r)
         kp1 = alp * kpa
         kp = 2 * (kpa - kp1) * s / lp + kp1
-        kpsum = kd + kp ## for 0 < s < lp
-        kpsint = sp.integrate(kpsum, (s, 0, lp))
-        tdeff = td - r * kpsint
-        self.thpeqn = kpsint - thp
-        self.thdeqn = tdeff / r - thd
-        # thdint = sp.integrate(kd, (s, lp, ld))
-        # # self.thdeqn = thdint - thd
-        # self.thdeqn = r * thd - td + tp
-        # self.tdsol = sp.solve(self.thdeqn, td)[0].subs({'l_d': self.lt,
-        #                                            'r'  : self.r,
-        #                                            'l_p': self.lp,
-        #                                            r'\alpha':self.alp})
+        thp_d = sp.integrate(kd, (s, 0, lp))
+        # dp = thp_d * r
+        # dd = sp.integrate(kd, (s, lp, ld)) * r
+        dp = sp.integrate(r * kd, (s, 0, lp))
+        dd = sp.integrate(r * kd, (s, lp, ld))
+        tp_add = sp.symbols('t_a')
+        phi_s = sp.symbols('\phi_s')
+        tp_eff = sp.Rational(1,2) * tp_add + sp.cos(phi_s) * dp
+        td_eff = dd - sp.Rational(1,2) * tp_add - sp.cos(phi_s) * tp_add
 
-        # kpa = tp / (lp * r)
-        # kp1 = alp * kpa
-        # kp = 2 * (kpa - kp1) * s / lp + kp1
-        # kptot = kd + kp
-        # kpint = sp.integrate(kptot, (s, 0, lp))
-        # self.thpeqn = kpint - thp
-        # self.tpsol = sp.solve(self.thpeqn, tp)[0].subs({'l_d': self.lt,
-        #                                            'r'  : self.r,
-        #                                            'l_p': self.lp,
-        #                                            r'\alpha':self.alp})
+        pang_eqn = sp.Eq(thp, tp_eff / r)
+        dang_eqn = sp.Eq(thd, td_eff / r)
+        sol = sp.solve([pang_eqn, dang_eqn], (tp_add, td))
+        self.tpadd = sol[tp_add]
+        self.tdsol = sol[td]
+        self.tpsol = self.tpadd + dp.subs({td: self.tdsol})
         
-        self.tdsolsnew = sp.solve((self.thdeqn, self.thpeqn), ('t_p','t_d'))
-        self.tpval = self.tdsolsnew[tp].subs({'l_d': self.lt,
+        self.tpval = self.tpsol.subs({'l_d': self.lt,
                                                    'r'  : self.r,
                                                    'l_p': self.lp,
                                                    r'\alpha':self.alp})
-        self.tdval = self.tdsolsnew[td].subs({'l_d': self.lt,
+        self.tdval = self.tdsol.subs({'l_d': self.lt,
                                                    'r'  : self.r,
                                                    'l_p': self.lp,
                                                    r'\alpha':self.alp})
@@ -63,10 +56,19 @@ class dualGaraKR():
         dtdl = self.getDistReqTDL(distang) + ptdl
         return ptdl, dtdl
     
+    def getPhiVal(self, proxang, distang):
+        if proxang * distang < 0:
+            phi_val = sp.pi
+        else:
+            phi_val = 0
+        return phi_val
+
     def getTDLs(self, proxang, distang):
         tpval = self.tpval.subs({r'\theta_p':proxang,
-                                 r'\theta_d':distang})
+                                 r'\theta_d':distang,
+                                 '\phi_s':self.getPhiVal(proxang, distang)})
         tdval = self.tdval.subs({r'\theta_p':proxang,
-                                 r'\theta_d':distang})
+                                 r'\theta_d':distang,
+                                 '\phi_s':self.getPhiVal(proxang, distang)})
         
         return tpval, tdval

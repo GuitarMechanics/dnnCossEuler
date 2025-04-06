@@ -1,4 +1,4 @@
-import dualGaraKR as dgk
+import dualGaraKRNew as dgk
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ tddnn = []
 tpnew = []
 tdnew = []
 
-tdcls = dgk.dualGaraKR(3.4,33,61)
+tdcls = dgk.dualGaraKRNew(3.4,33,61)
 
 for i, row in df.iterrows():
     ptarg.append(int(row['proxtarg']))
@@ -41,19 +41,21 @@ newdf = pd.DataFrame({'ProxTarget' : ptarg,
 # newdf.to_csv('dual/garaKRdual.csv')
 
 meltdfProx = newdf.melt(id_vars=['ProxTarget'], value_vars=['ECAVCProx',
+                                                            'DNNProx',
+                                                            'NewProx',
                                                         'ECAVCDist',
-                                                        'DNNProx',
                                                         'DNNDist',
-                                                        'NewProx',
                                                         'NewDist'],
                                                         var_name='Method',
                                                         value_name='TDL')
 meltdfDist = newdf.melt(id_vars=['DistTarget'], value_vars=['ECAVCProx',
+                                                            'DNNProx',
+                                                            'NewProx',
                                                         'ECAVCDist',
-                                                        'DNNProx',
                                                         'DNNDist',
-                                                        'NewProx',
                                                         'NewDist'],
                                                         var_name='Method',
                                                         value_name='TDL')
 
+meltdfProx.to_csv('dual/meltdfProx.csv')
+meltdfDist.to_csv('dual/meltdfDist.csv')
