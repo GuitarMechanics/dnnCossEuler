@@ -38,7 +38,7 @@ newdf = pd.DataFrame({'ProxTarget' : ptarg,
                       'DNNDist' : tddnn,
                       'NewProx' : tpnew,
                       'NewDist' : tdnew})
-# newdf.to_csv('dual/garaKRdual.csv')
+newdf.to_csv('dual/garaKRdual.csv')
 
 meltdfProx = newdf.melt(id_vars=['ProxTarget'], value_vars=['ECAVCProx',
                                                             'DNNProx',
