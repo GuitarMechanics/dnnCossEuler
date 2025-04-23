@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from dualNewFKin import dualNewFKin
+from dualNewFKin_ver2 import dualNewFKin
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
