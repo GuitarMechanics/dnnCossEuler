@@ -18,11 +18,16 @@ class dualNewFKin():
         self.cossym = sp.Symbol(r'c_{\phi}')
         self.lcst = lp + self.tpeff * self.cossym
         self.lcstsym = sp.Symbol(r'l_{cst}')
+        
+        kda2 = self.tdeff / (ld * r)
+        kd12 = kda2 * alp
+        kd2 = 2 * (kda2 - kd12) * s / ld + kd12
         with sp.assuming(sp.Q.nonzero(ld)):
-            dpnew = sp.integrate(r * kd / 2, (s, 0, self.lcst))
-            dpnew_lcstsym = sp.integrate(r * kd / 2, (s, 0, self.lcstsym))
-        tpeqn2 = sp.Eq(tp, self.tpeff - dpnew)
-        tdeqn2 = sp.Eq(td, self.tdeff + dpnew)
+            self.dpnew = sp.integrate(r * kd2 / 2, (s, 0, self.lcst))
+            dpnew_lcstsym = sp.integrate(r * kd2 / 2, (s, 0, self.lcstsym))
+            self.proxcompress = self.dpnew.subs([(lp,self.plen),(ld,self.tlen),(r, self.r),(alp, self.alp)]) / 2
+        tpeqn2 = sp.Eq(tp, self.tpeff - self.dpnew)
+        tdeqn2 = sp.Eq(td, self.tpeff + self.tdeff + self.dpnew)
         sol2 = sp.solve([tpeqn2, tdeqn2],(tp,td))        
         self.tpsol = sol2[tp].subs([(lp,self.plen),(ld,self.tlen),(r, self.r),(alp, self.alp)])
         self.tdsol = sol2[td].subs([(lp,self.plen),(ld,self.tlen),(r, self.r),(alp, self.alp)])
@@ -53,7 +58,7 @@ class dualNewFKin():
         tpval = self.tpsol.subs([(self.tpeff, peff),(self.tdeff,deff),(self.lcstsym,lcst),(self.cossym,cosval)])
         tdval = self.tdsol.subs([(self.tpeff, peff),(self.tdeff,deff),(self.lcstsym,lcst),(self.cossym,cosval)])
 
-        return tpval, tpval + tdval
+        return tpval, tdval
     
     def retrieveEffTDL(self, tp, td):
         peff, deff = sp.symbols(r't_peff t_deff')
@@ -66,38 +71,17 @@ class dualNewFKin():
         sol = sp.nsolve((tpeqn,tdeqn),(peff,deff),(tp, td-tp))
         return sol[0], sol[1]
 
-    def retreiveAngs(self, tp, td):
-        peff, deff = self.retrieveEffTDL(tp, td)
-        return peff / self.r , deff / self.r
-    # def getPos(self, pa, ta, resolution = 200):
-    #     pang, tang = pa, ta
-    #     dp = self.getDP(td)
-
-    #     pseglen = self.plen - np.abs(dp / 2)
-    #     pseg = np.linspace(0,pseglen, resolution)
-    #     pka = pang / pseglen
-    #     pk1 = self.alp * pka
-    #     ptheta = (pka - pk1) / pseglen * pseg ** 2 + pk1 * pseg
-    #     px = np.trapezoid(np.sin(ptheta), pseg)
-    #     py = np.trapezoid(np.cos(ptheta), pseg)
-
-    #     dseglen = self.tlen - self.plen
-    #     dseg = np.linspace(0,dseglen, resolution)
-    #     dka = tang / dseglen
-    #     dk1 = self.alp * dka
-    #     dtheta = (dka - dk1) / dseglen * dseg**2 + dk1 * dseg
-    #     dx_raw = np.trapezoid(np.sin(dtheta), dseg)
-    #     dy_raw = np.trapezoid(np.cos(dtheta), dseg)
-
-    #     prox_rotmat = np.array([[np.cos(-pang), -np.sin(-pang)],
-    #                             [np.sin(-pang),np.cos(-pang)]])
-    #     dpos_raw = np.array([dx_raw, dy_raw])
-    #     dpos_rot = prox_rotmat @ dpos_raw
-    #     dx_rot = dpos_rot[0]
-    #     dy_rot = dpos_rot[1]
-    #     dx = dx_rot + px
-    #     dy = dy_rot + py
-    #     # dx = dx_raw + px
-    #     # dy = dy_raw + py
-
-    #     return px, py, dx, dy
+    def getPos(self, pa, da, degrees = False):
+        peff, deff = self.getEffTDL(pa, da, degrees)
+        cosval = np.sign(peff) * np.sign(deff)
+        lcst = self.plen + peff * cosval
+        proxcompress = self.proxcompress.subs([(self.tpeff, peff)
+                                               (self.tdeff, deff),
+                                               (self.cossym,cosval)])
+        newplen = self.plen - np.abs(proxcompress)
+        if degrees:
+            pang = np.deg2rad(pa)
+            dang = np.deg2rad(da)
+        else:
+            pang = pa
+            dang = da
