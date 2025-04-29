@@ -20,6 +20,10 @@ retptdl = []
 retdtdl = []
 retpang = []
 retdang = []
+px = []
+py = []
+tx = []
+ty = []
 
 for i, row in df.iterrows():
     ptdl.append(row['proxtdl'])
@@ -36,6 +40,11 @@ for i, row in df.iterrows():
     # retpa, retda = db.retreiveAngs(ptdl[-1],dtdl[-1])
     # retpang.append(retpa)
     # retdang.append(retda)
+    pxpos, pypos, txpos, typos = db.getPos(ptarg[-1], dtarg[-1], degrees=True)
+    px.append(pxpos)
+    py.append(pypos)
+    tx.append(txpos)
+    ty.append(typos)
 
 newdf = pd.DataFrame({
     'proxtarg':ptarg,
@@ -47,14 +56,18 @@ newdf = pd.DataFrame({
     # 'ret_pa':retpang,
     # 'ret_da':retdang,
     'ret_tp':retptdl,
-    'ret_td':retdtdl
+    'ret_td':retdtdl,
+    'prox_x':px,
+    'prox_y':py,
+    'dist_x':tx,
+    'dist_y':ty
 })
-newdf.to_csv('dual/newfkin_datas_ver2.csv',index=None)
-# expdf = pd.read_csv('dual/dualexpdata.csv')
-# plt.figure()
-# plt.scatter(data = newdf, x = 'prox_x', y = 'prox_y', label = 'NEWFkinProx')
-# plt.scatter(data = newdf, x = 'dist_x', y = 'dist_y', label = 'NEWFkinDist')
-# plt.scatter(data = expdf, x = 'phor_rev', y = 'EXP_Prox', label = 'EXPProx')
-# plt.scatter(data = expdf, x = 'dhor_rev', y = 'EXP_Dist', label = 'EXPDist')
-# plt.legend()
-# plt.show()
+newdf.to_csv('dual/newfkin_datas_ver2_withpos.csv',index=None)
+expdf = pd.read_csv('dual/dualexpdata.csv')
+plt.figure()
+plt.scatter(data = newdf, x = 'prox_x', y = 'prox_y', label = 'NEWFkinProx')
+plt.scatter(data = newdf, x = 'dist_x', y = 'dist_y', label = 'NEWFkinDist')
+plt.scatter(data = expdf, x = 'phor_rev', y = 'EXP_Prox', label = 'EXPProx')
+plt.scatter(data = expdf, x = 'dhor_rev', y = 'EXP_Dist', label = 'EXPDist')
+plt.legend()
+plt.show()

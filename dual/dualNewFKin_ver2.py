@@ -71,17 +71,43 @@ class dualNewFKin():
         sol = sp.nsolve((tpeqn,tdeqn),(peff,deff),(tp, td-tp))
         return sol[0], sol[1]
 
-    def getPos(self, pa, da, degrees = False):
+    def getPos(self, pa, da, degrees = False, resolution = 200):
         peff, deff = self.getEffTDL(pa, da, degrees)
         cosval = np.sign(peff) * np.sign(deff)
         lcst = self.plen + peff * cosval
-        proxcompress = self.proxcompress.subs([(self.tpeff, peff)
+        proxcompress = float(self.proxcompress.subs([(self.tpeff, peff),
                                                (self.tdeff, deff),
-                                               (self.cossym,cosval)])
+                                               (self.cossym,cosval),
+                                               (self.lcstsym, lcst)]))
         newplen = self.plen - np.abs(proxcompress)
+        dlen = self.tlen - self.plen
         if degrees:
             pang = np.deg2rad(pa)
             dang = np.deg2rad(da)
         else:
             pang = pa
             dang = da
+
+        psegs = np.linspace(0, newplen, resolution)
+        dsegs = np.linspace(0, dlen, resolution)
+
+        kpavg = pang / newplen
+        kp1 = self.alp * kpavg
+        kdavg = dang / dlen
+        kd1 = self.alp * kdavg
+
+        thp = (kpavg - kp1) * psegs **2 / newplen + kp1 * psegs
+        thd = (kdavg - kd1) * dsegs **2 / dlen + kd1 * dsegs
+        px = np.trapezoid(np.sin(thp), psegs)
+        py = np.trapezoid(np.cos(thp), psegs)
+        dxraw = np.trapezoid(np.sin(thd), dsegs)
+        dyraw = np.trapezoid(np.cos(thd), dsegs)
+        prox_rotmat = np.array([[np.cos(-pang), -np.sin(-pang)],
+                                [np.sin(-pang),np.cos(-pang)]])
+        dpos_raw = np.array([dxraw, dyraw])
+        dpos_rot = prox_rotmat @ dpos_raw
+        dx_rot = dpos_rot[0]
+        dy_rot = dpos_rot[1]
+        dx = dx_rot + px
+        dy = dy_rot + py
+        return px, py, dx, dy
